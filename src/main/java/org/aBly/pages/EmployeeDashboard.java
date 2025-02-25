@@ -6,6 +6,7 @@ import org.aBly.models.category.Category;
 import org.aBly.models.ticket.PageTicketResponse;
 import org.aBly.models.ticket.TicketRequest;
 import org.aBly.models.ticket.TicketResponse;
+import org.aBly.router.RouteManager;
 import org.aBly.services.CategoryService;
 import org.aBly.services.TicketService;
 import retrofit2.Call;
@@ -34,7 +35,7 @@ public class EmployeeDashboard extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> priorityFilter, statusFilter, categoryFilter;
-    private JButton searchButton, createTicketButton, refreshButton;
+    private JButton searchButton, createTicketButton, refreshButton, logoutButton;
     private Map<String, Long> categoryMap = new HashMap<>();
 
     // Color scheme
@@ -45,6 +46,7 @@ public class EmployeeDashboard extends JPanel {
     private final Color SUCCESS_COLOR = new Color(46, 204, 113);
     private final Color TEXT_COLOR = new Color(240, 240, 240);
     private final Color HOVER_COLOR = new Color(0, 140, 200);
+    private final Color LOGOUT_COLOR = new Color(231, 76, 60); // Red for logout button
 
     @Inject
     public EmployeeDashboard(TicketService ticketService, CategoryService categoryService) {
@@ -70,11 +72,21 @@ public class EmployeeDashboard extends JPanel {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 24));
         headerPanel.add(titleLabel, BorderLayout.WEST);
 
-        createTicketButton = createStyledButton("New Ticket", ACCENT_COLOR);
-        createTicketButton.setIcon(new ImageIcon(getClass().getResource("/icons/add.png"))); // Assuming you have icons
-        createTicketButton.addActionListener(e -> createTicket());
-        headerPanel.add(createTicketButton, BorderLayout.EAST);
+        // Create buttons panel for right side of header
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        buttonsPanel.setBackground(BG_COLOR);
 
+        // Create ticket button
+        createTicketButton = createStyledButton("New Ticket", ACCENT_COLOR);
+        createTicketButton.addActionListener(e -> createTicket());
+        buttonsPanel.add(createTicketButton);
+
+        // Logout button
+        logoutButton = createStyledButton("Logout", LOGOUT_COLOR);
+        logoutButton.addActionListener(e -> logout());
+        buttonsPanel.add(logoutButton);
+
+        headerPanel.add(buttonsPanel, BorderLayout.EAST);
         add(headerPanel, BorderLayout.NORTH);
 
         // Main panel
@@ -163,6 +175,21 @@ public class EmployeeDashboard extends JPanel {
         statusPanel.add(statusLabel, BorderLayout.WEST);
 
         add(statusPanel, BorderLayout.SOUTH);
+    }
+
+    // Implementation of logout functionality
+    private void logout() {
+        int response = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (response == JOptionPane.YES_OPTION) {
+            RouteManager.navigate("auth");
+        }
     }
 
     private void styleTable(JTable table) {
@@ -570,7 +597,7 @@ public class EmployeeDashboard extends JPanel {
         }
     }
 
-    // Button editor for action column
+
     class ButtonEditor extends DefaultCellEditor {
         protected JButton button;
         private String label;
