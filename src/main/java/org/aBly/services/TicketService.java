@@ -2,6 +2,7 @@ package org.aBly.services;
 
 
 
+import org.aBly.models.ticket.PageTicketResponse;
 import org.aBly.models.ticket.TicketRequest;
 import org.aBly.models.ticket.TicketResponse;
 import retrofit2.Call;
@@ -21,14 +22,14 @@ public interface TicketService {
     Call<Boolean> updateTicketStatus(@Path("id") Long ticketId, @Query("status") String status);
 
     @GET("tickets/search")
-    Call<List<TicketResponse>> searchTickets(
-        @Query("category") String category,
-        @Query("ticketPriority") String priority,
-        @Query("status") String status,
-        @Query("page") int page,
-        @Query("size") int size,
-        @Query("sortBy") String sortBy,
-        @Query("sortDirection") String sortDirection
-    );
+  Call<PageTicketResponse> searchTickets(
+    @Query("query") String query,
+    @Query("ticketPriority") String priority,
+    @Query("status") String status,
+    @Query("page") int page,
+    @Query("size") int size,
+    @Query("sortBy") String sortBy,
+    @Query("sortDirection") String sortDirection
+);
 }
 

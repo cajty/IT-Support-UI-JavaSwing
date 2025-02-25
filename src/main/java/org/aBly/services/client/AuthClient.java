@@ -1,6 +1,5 @@
 package org.aBly.services.client;
 
-
 import org.aBly.models.auth.LoginRequest;
 import org.aBly.models.auth.LoginResponse;
 import org.aBly.models.auth.RegisterRequest;
@@ -12,7 +11,7 @@ import javax.inject.Inject;
 import javax.swing.JOptionPane;
 import java.io.IOException;
 
-public class AuthClient {
+public class AuthClient extends BaseClient {
     private final AuthService authService;
 
     @Inject
@@ -21,35 +20,30 @@ public class AuthClient {
     }
 
     public boolean login(String email, String password) {
-        try {
-            Response<LoginResponse> response = authService.login(new LoginRequest(email, password)).execute();
-            if (response.isSuccessful() && response.body() != null && response.body().getToken() != null) {
-                System.out.println(response.body().getToken());
-                SessionManager.setToken(response.body().getToken());
-                showMessage(" successful", "Success", JOptionPane.INFORMATION_MESSAGE);
-                return true;
-            }
-            showMessage("Login failed. Please check your credentials.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showMessage("An error occurred during login.", "Error", JOptionPane.ERROR_MESSAGE);
+      try {
+    Response<LoginResponse> response = authService.login(new LoginRequest(email, password)).execute();
+
+    if (response.isSuccessful()) { // Check HTTP status first!
+        LoginResponse loginResponse = response.body();
+        if (loginResponse != null && loginResponse.getToken() != null) {
+            SessionManager.setToken(loginResponse.getToken());
+            showMessage("Login successful", "Success", JOptionPane.INFORMATION_MESSAGE); // Don't leak the token!
+            return true;
         }
-        return false;
+    } else {
+        // Handle HTTP errors (e.g., 401, 500)
+        String errorMessage = "Login failed: " + response.code() + " - " + response.message();
+        showMessage(errorMessage, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+} catch (IOException e) {
+    System.err.println("[ERROR] Network error: " + e.getMessage());
+    showMessage("Network error. Check your connection.", "Error", JOptionPane.ERROR_MESSAGE);
+}
+return false;
     }
 
     public boolean register(String name, String email, String password) {
-        try {
-            Response<LoginResponse> response = authService.register(new RegisterRequest(name, email, password)).execute();
-            if (response.isSuccessful() && response.body() != null && response.body().getToken() != null) {
-                showMessage("Registration successful", "Success", JOptionPane.INFORMATION_MESSAGE);
-                return true;
-            }
-            showMessage("Registration failed.", "Error", JOptionPane.ERROR_MESSAGE);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showMessage("An error occurred during registration.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-        return false;
+        return executeCall(() -> authService.register(new RegisterRequest(name, email, password)).execute()).isPresent();
     }
 
     public void logout() {
@@ -61,4 +55,3 @@ public class AuthClient {
         JOptionPane.showMessageDialog(null, message, title, type);
     }
 }
-
