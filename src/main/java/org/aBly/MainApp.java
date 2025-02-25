@@ -35,6 +35,7 @@ public class MainApp extends JFrame {
 
     private void setAppIcon() {
         try {
+
             ImageIcon icon = new ImageIcon(getClass().getResource("/appIcon.png"));
             setIconImage(icon.getImage());
         } catch (Exception e) {
